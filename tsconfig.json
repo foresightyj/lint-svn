@@ -1,0 +1,42 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "ESNext",
+        "allowJs": true,
+        "checkJs": false,
+        "outDir": "build",
+        "sourceRoot": "",
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "moduleResolution": "Node",
+        "strict": true,
+        "jsx": "preserve",
+        "alwaysStrict": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "noImplicitAny": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitThis": true,
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "downlevelIteration": true,
+        "sourceMap": true,
+        "lib": [
+            "esnext",
+        ],
+        "baseUrl": "./",
+        "forceConsistentCasingInFileNames": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "isolatedModules": false,
+        "noEmit": true
+    },
+    "include": [
+        "src/**/*.js",
+        "src/**/*.ts",
+        "./*.js"
+    ],
+    "exclude": [
+        "./node_modules/*",
+    ]
+}

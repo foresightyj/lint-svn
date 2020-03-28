@@ -1,0 +1,29 @@
+{
+    "name": "lint-svn",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./src/index.js",
+    "bin": "./src/index.js",
+    "scripts": {
+        "ts": "tsc",
+        "lint": "node ./src/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/micromatch": "^4.0.1",
+        "@types/shelljs": "^0.8.7",
+        "prettier": "^2.0.2"
+    },
+    "dependencies": {
+        "chalk": "^3.0.0",
+        "cosmiconfig": "^6.0.0",
+        "execa": "^4.0.0",
+        "globby": "^11.0.0",
+        "micromatch": "^4.0.2",
+        "p-limit": "^2.2.2",
+        "shelljs": "^0.8.3",
+        "xml2js": "^0.4.23"
+    }
+}
