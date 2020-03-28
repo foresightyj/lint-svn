@@ -1,7 +1,7 @@
 //@ts-check
 
 /**
- * @typedef {import("./src/types").LintConfig} LintConfig 
+ * @typedef {import("./src/types").LintConfig} LintConfig
  */
 
 /** @type {LintConfig} */
