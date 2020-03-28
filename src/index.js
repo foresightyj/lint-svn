@@ -1,5 +1,4 @@
 //@ts-check
-const fs = require("fs");
 const pLimit = require("p-limit").default;
 const chalk = require("chalk");
 const assert = require("assert");
@@ -11,10 +10,6 @@ const { getSvnStatus } = require("./svn");
 const { loadConfig } = require("./config");
 
 const ignoreExts = [".dll", ".map"];
-
-/**
- * @typedef {import("execa").ExecaError} ExecaError
- */
 
 /**
  * @param {LintConfig} config 
@@ -48,7 +43,7 @@ async function lint(config) {
                 `Linted: ${friendlyCmd} matching ${chalk.bgGreen(globPatt)}.`,
             );
         } catch (e) {
-            /** @type {ExecaError} */
+            /** @type {import("execa").ExecaError} */
             const err = e;
             warnings.push(new Warning(err.message));
         }
