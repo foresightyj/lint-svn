@@ -3,34 +3,34 @@ const assert = require("assert");
 const { cosmiconfig } = require("cosmiconfig");
 
 /**
- * @typedef {import("./types").LintConfig} LintConfig 
+ * @typedef {import("./types").LintConfig} LintConfig
  */
 
 /**
- * @param {string} configPath 
+ * @param {string} configPath
  */
 function resolveConfig(configPath) {
     try {
-        return require.resolve(configPath)
+        return require.resolve(configPath);
     } catch {
-        return configPath
+        return configPath;
     }
 }
 
-
 /**
- * @param {string} [configPath] 
- * @returns {Promise<LintConfig>}
+ * @param {string} [configPath]
+ * @returns {Promise<{configPath:string, config: LintConfig}>}
  */
 async function loadConfig(configPath) {
-    const explorer = cosmiconfig('lint-staged', {
-        searchPlaces: [
-            '.lintsvnrc.js',
-            'lint-svn.config.js'
-        ]
-    })
-    const resP = configPath ? explorer.load(resolveConfig(configPath)) : explorer.search()
+    const explorer = cosmiconfig("lint-staged", {
+        searchPlaces: [".lintsvnrc.js", "lint-svn.config.js"],
+    });
+    const resP = configPath
+        ? explorer.load(resolveConfig(configPath))
+        : explorer.search();
     const res = await resP;
+    // @ts-ignore
+    configPath = res.filepath;
     /** @type {LintConfig} */
     // @ts-ignore
     const config = res.config;
@@ -41,9 +41,12 @@ async function loadConfig(configPath) {
         assert(rule.glob, "rule.glob not defined");
         assert(rule.command, "rule.command not defined");
     }
-    return config;
+    return {
+        configPath,
+        config,
+    };
 }
 
 module.exports = {
     loadConfig,
-}
+};

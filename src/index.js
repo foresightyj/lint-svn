@@ -7,33 +7,45 @@ const assert = require("assert");
 const path = require("path");
 const micromatch = require("micromatch");
 const execa = require("execa");
+const commander = require("commander");
 const { Warning } = require("./warning");
 const { getSvnStatus } = require("./svn");
 const { loadConfig } = require("./config");
-
+const { version } = require("../package.json");
+const globby = require("globby");
 
 /**
- * @typedef {import("./types").LintConfig} LintConfig 
+ * @typedef {import("./types").LintConfig} LintConfig
  */
 
 /**
- * @param {LintConfig} config 
+ * @param {LintConfig} config
+ * @param {string[]} [files]
  */
-async function lint(config) {
+async function lint(config, files) {
     /** @type {Warning[]} */
     const warnings = [];
-    const svnStatuses = await getSvnStatus();
-    const stagedFiles = svnStatuses
-        .filter(s => s.Status === "Added" || s.Status === "Modified")
-        .map(s => s.Path);
-    const nonVersionedFiles = svnStatuses
-        .filter(s => s.Status === "NonVersioned")
-        .map(s => s.Path);
+    /** @type {string[]} */
+    let stagedFiles = [];
+    /** @type {string[]} */
+    let nonVersionedFiles = [];
+    if (!files) {
+        const svnStatuses = await getSvnStatus();
+        stagedFiles = svnStatuses
+            .filter(s => s.Status === "Added" || s.Status === "Modified")
+            .map(s => s.Path);
+        nonVersionedFiles = svnStatuses
+            .filter(s => s.Status === "NonVersioned")
+            .map(s => s.Path);
+    } else {
+        stagedFiles = files;
+        nonVersionedFiles = [];
+    }
 
     /**
-     * @param {string} cmd 
-     * @param {string[]} matched 
-     * @param {string} globPatt 
+     * @param {string} cmd
+     * @param {string[]} matched
+     * @param {string} globPatt
      */
     async function runCmd(cmd, matched, globPatt) {
         if (cmd.includes("npm") && cmd.includes("--")) {
@@ -99,6 +111,22 @@ async function lint(config) {
 }
 
 (async () => {
-    const config = await loadConfig();
-    await lint(config);
-})()
+    commander
+        .version(version)
+        .option("-a, --all")
+        .parse(process.argv);
+
+    const runAll = !!commander.all;
+    const { configPath, config } = await loadConfig();
+
+    /** @type {string[]|undefined} */
+    let files = undefined;
+    if (runAll) {
+        const allGlobs = config.rules.map(f => f.glob);
+        files = await globby(allGlobs, {
+            cwd: path.dirname(configPath),
+            gitignore: true,
+        });
+    }
+    await lint(config, files);
+})();
