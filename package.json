@@ -1,11 +1,15 @@
 {
   "name": "lint-svn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "./src/index.js",
+  "engines": {
+    "node": ">=10.0.1"
+  },
   "bin": {
     "lint-svn": "./src/index.js"
   },
+  "types": "./src/types.d.ts",
   "scripts": {
     "ts": "tsc",
     "lint": "node ./src/index.js"

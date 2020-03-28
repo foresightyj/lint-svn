@@ -1,6 +1,10 @@
 //@ts-check
 const chalk = require("chalk");
 
+/**
+ * @typedef {import("./types").WarningLevel} WarningLevel 
+ */
+
 class Warning {
     /**
      * @param {string} message

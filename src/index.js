@@ -9,7 +9,10 @@ const { Warning } = require("./warning");
 const { getSvnStatus } = require("./svn");
 const { loadConfig } = require("./config");
 
-const ignoreExts = [".dll", ".map"];
+
+/**
+ * @typedef {import("./types").LintConfig} LintConfig 
+ */
 
 /**
  * @param {LintConfig} config 
@@ -50,6 +53,7 @@ async function lint(config) {
     }
 
     const limit = pLimit(config.concurrency || 1);
+    const ignoreExtensions = config.ignoreExtensions || [];
     const runables = config.rules.map(rule =>
         limit(async () => {
             if (rule.skip) return;
@@ -62,7 +66,7 @@ async function lint(config) {
                     matchBase: !globPatt.includes("/"),
                 },
             )
-                .filter(f => !ignoreExts.includes(path.extname(f)))
+                .filter(f => !ignoreExtensions.includes(path.extname(f)))
                 .filter(f => path.extname(f));
 
             if (matchedFiles.length) {

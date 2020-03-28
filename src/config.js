@@ -3,6 +3,10 @@ const assert = require("assert");
 const { cosmiconfig } = require("cosmiconfig");
 
 /**
+ * @typedef {import("./types").LintConfig} LintConfig 
+ */
+
+/**
  * @param {string} configPath 
  */
 function resolveConfig(configPath) {

@@ -1,5 +1,4 @@
 //@ts-check
-
 const $ = require("shelljs");
 const execa = require("execa");
 
