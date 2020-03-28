@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 //@ts-check
 const pLimit = require("p-limit").default;
 const chalk = require("chalk");
