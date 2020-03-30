@@ -2,7 +2,7 @@
 const chalk = require("chalk");
 
 /**
- * @typedef {import("./types").WarningLevel} WarningLevel 
+ * @typedef {import("./types").WarningLevel} WarningLevel
  */
 
 class Warning {
@@ -66,4 +66,4 @@ class Warning {
 
 module.exports = {
     Warning,
-}
+};

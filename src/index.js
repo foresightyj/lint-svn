@@ -4,6 +4,7 @@
 const pLimit = require("p-limit").default;
 const chalk = require("chalk");
 const assert = require("assert");
+const chunk = require("chunk");
 const path = require("path");
 const micromatch = require("micromatch");
 const execa = require("execa");
@@ -20,9 +21,10 @@ const globby = require("globby");
 
 /**
  * @param {LintConfig} config
+ * @param {boolean} isDebug
  * @param {string[]} [files]
  */
-async function lint(config, files) {
+async function lint(config, isDebug, files) {
     /** @type {Warning[]} */
     const warnings = [];
     /** @type {string[]} */
@@ -83,6 +85,10 @@ async function lint(config, files) {
                 .filter(f => !ignoreExtensions.includes(path.extname(f)))
                 .filter(f => path.extname(f));
 
+            if (isDebug) {
+                console.log(`Matched ${matchedFiles.length} for rule:`, rule);
+            }
+
             if (matchedFiles.length) {
                 if (Array.isArray(command)) {
                     for (const cmd of command) {
@@ -107,26 +113,41 @@ async function lint(config, files) {
         }),
     );
     await Promise.all(runables);
-    Warning.printWarnings(warnings);
+    return warnings;
 }
 
 (async () => {
     commander
         .version(version)
-        .option("-a, --all")
+        .option("-g, --glob <glob>")
+        .option("-d, --debug")
         .parse(process.argv);
 
-    const runAll = !!commander.all;
+    const isDebug = !!commander.debug;
     const { configPath, config } = await loadConfig();
 
     /** @type {string[]|undefined} */
     let files = undefined;
-    if (runAll) {
-        const allGlobs = config.rules.map(f => f.glob);
-        files = await globby(allGlobs, {
+    /** @type {string | undefined} */
+    const g = commander.glob;
+    if (g) {
+        files = await globby(g, {
             cwd: path.dirname(configPath),
             gitignore: true,
         });
+        console.log(files.length + " files matching: " + g);
     }
-    await lint(config, files);
+    if (!files) {
+        const warnings = await lint(config, isDebug, files);
+        Warning.printWarnings(warnings);
+    } else if (files.length) {
+        /** @type {Warning[]} */
+        const warnings = [];
+        for (const ch of chunk(files, 200)) {
+            console.log(ch);
+            const ws = await lint(config, isDebug, ch);
+            ws.forEach(w => warnings.push(w));
+        }
+        Warning.printWarnings(warnings);
+    }
 })();
