@@ -16,7 +16,7 @@ Create a config file in your root directory of name: `.lintsvnrc.js` or `lint-sv
 /**
  * @param {string[]} files
  */
-async function checkNonVersioned(files) {
+async function checkunversioned(files) {
     const warnings = [];
     for (const file of files) {
         if(path.extname(file) === ".png")
@@ -43,9 +43,9 @@ const lintConfig = {
         },
         {
             glob: "*",
-            //if false, only lint Added & Modified files
+            //if false, only lint added & modified files
             nonVersioned: true,
-            command: checkNonVersioned,
+            command: checkunversioned,
         },
     ],
 };

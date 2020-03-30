@@ -32,10 +32,10 @@ async function lint(config, files) {
     if (!files) {
         const svnStatuses = await getSvnStatus();
         stagedFiles = svnStatuses
-            .filter(s => s.Status === "Added" || s.Status === "Modified")
+            .filter(s => s.Status === "added" || s.Status === "modified")
             .map(s => s.Path);
         nonVersionedFiles = svnStatuses
-            .filter(s => s.Status === "NonVersioned")
+            .filter(s => s.Status === "unversioned")
             .map(s => s.Path);
     } else {
         stagedFiles = files;
