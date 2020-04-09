@@ -3,11 +3,11 @@ const $ = require("shelljs");
 const xml2js = require("xml2js");
 const execa = require("execa");
 
-/** @typedef {"modified" | "added" | "missing" | "unversioned" | "__unknown__"} SvnStatus */
+/** @typedef {"modified" | "added" | "missing" | "unversioned" | "deleted" | "__unknown__"} SvnStatus */
 /** @typedef {{Path:string, Status: SvnStatus}} SvnStatusInfo */
 
 /** @type {SvnStatus[]} */
-const knownStatuses = ["modified", "added", "missing", "unversioned"];
+const knownStatuses = ["modified", "added", "missing", "unversioned", "deleted"];
 
 /**
  * @returns {Promise<SvnStatusInfo[]>}
