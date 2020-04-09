@@ -17,6 +17,8 @@ const globby = require("globby");
 
 /**
  * @typedef {import("./types").LintConfig} LintConfig
+ * @typedef {import("./types").TaskFn} TaskFn
+ * @typedef {import("./types").CommandDefinition} CommandDefinition
  */
 
 /**
@@ -34,11 +36,11 @@ async function lint(config, isDebug, files) {
     if (!files) {
         const svnStatuses = await getSvnStatus();
         stagedFiles = svnStatuses
-            .filter(s => s.Status === "added" || s.Status === "modified")
-            .map(s => s.Path);
+            .filter((s) => s.Status === "added" || s.Status === "modified")
+            .map((s) => s.Path);
         nonVersionedFiles = svnStatuses
-            .filter(s => s.Status === "unversioned")
-            .map(s => s.Path);
+            .filter((s) => s.Status === "unversioned")
+            .map((s) => s.Path);
     } else {
         stagedFiles = files;
         nonVersionedFiles = [];
@@ -49,7 +51,7 @@ async function lint(config, isDebug, files) {
      * @param {string[]} matched
      * @param {string} globPatt
      */
-    async function runCmd(cmd, matched, globPatt) {
+    async function runShell(cmd, matched, globPatt) {
         if (cmd.includes("npm") && cmd.includes("--")) {
             assert(cmd.includes("--"), "npm command must postfix with --");
         }
@@ -67,10 +69,45 @@ async function lint(config, isDebug, files) {
             warnings.push(new Warning(err.message));
         }
     }
+    /**
+     * @param {TaskFn} task
+     * @param {string[]} matched
+     * @param {string} globPatt
+     */
+    async function runTaskFn(task, matched, globPatt) {
+        const res = await Promise.resolve(task(matched));
+        if (!res || (Array.isArray(res) && !res.length)) {
+            //ok
+        } else if (Warning.isWarningArray(res)) {
+            /** @type {Warning[]} */
+            // @ts-ignore
+            const ws = res;
+            ws.forEach((r) => warnings.push(r));
+        } else {
+            throw new Error("Not implemented");
+        }
+    }
+
+    /**
+     * @param {CommandDefinition} command
+     * @param {string[]} matchedFiles
+     * @param {string} globPatt
+     */
+    async function runCommand(command, matchedFiles, globPatt) {
+        if (typeof command === "function") {
+            await runTaskFn(command, matchedFiles, globPatt);
+        } else if (typeof command === "string") {
+            await runShell(command, matchedFiles, globPatt);
+        } else {
+            for (const cmd of command) {
+                await runCommand(cmd, matchedFiles, globPatt);
+            }
+        }
+    }
 
     const limit = pLimit(config.concurrency || 1);
     const ignoreExtensions = config.ignoreExtensions || [];
-    const runables = config.rules.map(rule =>
+    const runables = config.rules.map((rule) =>
         limit(async () => {
             if (rule.skip) return;
             const { glob: globPatt, nonVersioned, command } = rule;
@@ -82,33 +119,15 @@ async function lint(config, isDebug, files) {
                     matchBase: !globPatt.includes("/"),
                 },
             )
-                .filter(f => !ignoreExtensions.includes(path.extname(f)))
-                .filter(f => path.extname(f));
+                .filter((f) => !ignoreExtensions.includes(path.extname(f)))
+                .filter((f) => path.extname(f));
 
             if (isDebug) {
                 console.log(`Matched ${matchedFiles.length} for rule:`, rule);
             }
 
             if (matchedFiles.length) {
-                if (Array.isArray(command)) {
-                    for (const cmd of command) {
-                        await runCmd(cmd, matchedFiles, globPatt);
-                    }
-                } else if (typeof command === "function") {
-                    const res = await Promise.resolve(command(matchedFiles));
-                    if (!res || (Array.isArray(res) && !res.length)) {
-                        //ok
-                    } else if (Warning.isWarningArray(res)) {
-                        /** @type {Warning[]} */
-                        // @ts-ignore
-                        const ws = res;
-                        ws.forEach(r => warnings.push(r));
-                    } else {
-                        throw new Error("Not implemented");
-                    }
-                } else {
-                    await runCmd(command, matchedFiles, globPatt);
-                }
+                await runCommand(command, matchedFiles, globPatt);
             }
         }),
     );
@@ -146,7 +165,7 @@ async function lint(config, isDebug, files) {
         for (const ch of chunk(files, 200)) {
             console.log(ch);
             const ws = await lint(config, isDebug, ch);
-            ws.forEach(w => warnings.push(w));
+            ws.forEach((w) => warnings.push(w));
         }
         Warning.printWarnings(warnings);
     }

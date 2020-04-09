@@ -12,12 +12,13 @@ declare namespace lintSvn {
         | string
         | string[]
         | Promise<string | string[]>;
+    type CommandDefinition = string | string[] | TaskFn | TaskFn[];
     interface LintConfig {
         ignoreExtensions?: string[]
         concurrency?: number;
         rules: {
             glob: string;
-            command: string | string[] | TaskFn;
+            command: CommandDefinition;
             skip?: boolean;
             nonVersioned?: boolean;
         }[];
