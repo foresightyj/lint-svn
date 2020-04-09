@@ -140,9 +140,11 @@ async function lint(config, isDebug, files) {
         .version(version)
         .option("-g, --glob <glob>")
         .option("-d, --debug")
+        .option("-c, --chunk <chunk>")
         .parse(process.argv);
 
     const isDebug = !!commander.debug;
+    const chunkSize = parseInt(commander.chunk, 10) || 100;
     const { configPath, config } = await loadConfig();
 
     /** @type {string[]|undefined} */
@@ -162,7 +164,7 @@ async function lint(config, isDebug, files) {
     } else if (files.length) {
         /** @type {Warning[]} */
         const warnings = [];
-        for (const ch of chunk(files, 200)) {
+        for (const ch of chunk(files, chunkSize)) {
             console.log(ch);
             const ws = await lint(config, isDebug, ch);
             ws.forEach((w) => warnings.push(w));
