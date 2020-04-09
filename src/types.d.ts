@@ -12,9 +12,10 @@ declare namespace lintSvn {
         | string
         | string[]
         | Promise<string | string[]>;
-    type CommandDefinition = string | string[] | TaskFn | TaskFn[];
+    type SingleCommand = string | TaskFn;
+    type CommandDefinition = SingleCommand | Array<SingleCommand>;
     interface LintConfig {
-        ignoreExtensions?: string[]
+        ignoreExtensions?: string[];
         concurrency?: number;
         rules: {
             glob: string;
