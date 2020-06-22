@@ -3,11 +3,18 @@ const $ = require("shelljs");
 const xml2js = require("xml2js");
 const execa = require("execa");
 
-/** @typedef {"modified" | "added" | "missing" | "unversioned" | "deleted" | "__unknown__"} SvnStatus */
+/** @typedef {"modified" | "added" | "missing" | "unversioned" | "deleted" | "normal" | "__unknown__"} SvnStatus */
 /** @typedef {{Path:string, Status: SvnStatus}} SvnStatusInfo */
 
 /** @type {SvnStatus[]} */
-const knownStatuses = ["modified", "added", "missing", "unversioned", "deleted"];
+const knownStatuses = [
+    "modified",
+    "added",
+    "missing",
+    "unversioned",
+    "deleted",
+    "normal",
+];
 
 /**
  * @returns {Promise<SvnStatusInfo[]>}
@@ -36,7 +43,7 @@ async function getSvnStatus() {
     const { stdout } = await execa("svn status --xml");
     const parsed = await xml2js.parseStringPromise(stdout);
     const entry = parsed.status.target[0].entry;
-    const status = entry.map(e => ({
+    const status = entry.map((e) => ({
         Path: e["$"].path,
         Status: mapStatus(e["wc-status"][0]["$"].item),
     }));
